@@ -21,6 +21,8 @@ IP 192.168.1.nnn
 .\AzureAD\thj@biwise.dk  
 Cjj.....  
 
+https://www.anyviewer.com/how-to/rdp-with-azure-ad-0427.html
+
 Now the logon window from my WorkPC opens in a window on my HomePC ready for "Other user" and the user is "AzureAD\thj@biwise.dk"
 I enter the password Cjj...
 
