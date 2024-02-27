@@ -1,7 +1,7 @@
 ## What's involved ##
 This setup is a laptop PC with SSMS (SQL Server Management Service), SQL Server 1, SQL Server 2 and an Active Directory Domain Controller (DC)  
 All running on Windows OS  
-The domain is G12.Local and hostnames are "T1201" (with Ip:252) and "TEST2019" (with Ip:219) for SQL1 and SQL2  
+The domain is "G12.Local" and hostnames are "T1201" (with Ip:252) and "TEST2019" (with Ip:219) for SQL1 and SQL2  
 (SQL1 is the "middle" and SQL2 is the one that users windows credentials should be delegated to)
 ## Basic Settings ##
 First be sure how to reach the SQL Servers:  
@@ -9,7 +9,7 @@ First be sure how to reach the SQL Servers:
 
 In SSMS for both server, enable "Both failed and successful logins" from "Server Properties" - "Sucurity"
 
-The user on the Laptop is `mrtest@g12.local` or G12/mrtest and he is member of the DomainUsers group
+The user on the Laptop is `mrtest@g12.local` or `G12/mrtest` and he is member of the DomainUsers group
 
 ## The Data ##
 
@@ -33,9 +33,12 @@ CREATE OR ALTER VIEW [dbo].[myView1] AS
 SELECT *
 FROM [BOX2].[Sandbox2].[dbo].[MyTable2];
 ```
+### Recap ###
 A table on SQL2 is part of a view that exists on SQL1.  
 SQL1 "talks" to SQL2 through a "Linked Server"  
 When the user opens the view on SQL1, the credentials must be passed to SQL2 in order to "see" the content of the view.
+____
+
 
 In AD a group called `G12\Test_Users` exists with one member: `mrTest`  
 On SQL1 under "Security" - "Logins" this is set:  
@@ -47,7 +50,7 @@ If client opens SSMS, connects to SQL1 and tries to open "MyView1" an error is g
 
 ## SPN and Delegation ##
 
-In a standard SQL Express installation, the User running the SQL service is `NT Service\MSSQL$SQLEXPRESS`. Having two servers with the same owner-name is not acceptable fro SPN's to work.  
+In a standard SQL Express installation, the User running the SQL service is `NT Service\MSSQL$SQLEXPRESS`. Having two servers with the same owner-name is not acceptable for SPN's to work.  
 Therefore two users has been created, `SQL252` and `SQL219`, and the owner of the SQL Services for both SQL Server is changed:  
 For SQL2 it looks like:  
 ![image](https://github.com/ThorkilG12/Misc/assets/12120277/db65d432-8cc8-4180-a3d1-b9c33760e97c)
@@ -64,12 +67,23 @@ setspn -S MSSQLSvc/test2019.g12.local g12.local\SQL219
 setspn -S MSSQLSvc/test2019.g12.local:1433 g12.local\SQL219
 ```
 
-Now we need delegation, and we are done:
+Now we need delegation, and we are done:  
+(Hopefully not as a surprise, it is the user that runs the middle server(SQL1) that has the job of delegation.)  
+![image](https://github.com/ThorkilG12/Misc/assets/12120277/b80e5725-57ac-4491-8f5d-ebe0b5eee649)
 
+And now, the client can connect to SQL1 and see the contents from the table on SQL2, and the logs shows that "Delegation" was in use:  
+`2024-02-27 12:58:13.90 Logon       Login succeeded for user 'G12\mrtest'. Connection made using Integrated authentication. [CLIENT: 192.168.1.252]`  
+SQL2 thinks that request came from SQL1, but we know better 😊
 
 ## Tricks ##
+Along the way i learned this from a colleque: When being an SQL Admin, one can act as another, and then revert to Admin after test. Nice !
+
+```
 execute as login = 'G12\mrtest';
 select * from fn_my_permissions(null,'database')
 SELECT SUSER_NAME(), USER_NAME();
 SELECT TOP (10) * FROM [dbo].[<some object>]
 revert;
+```
+
+Thorkil - Feb 2024
