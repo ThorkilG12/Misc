@@ -11,3 +11,12 @@ When doing a "Preview in Browser" this was created with the whole project: "C:\U
 
 Now I try to publish to "C:\Users\bruger\Documents\Mobirise\www_ghkurser_dk" even though the folder \Mobirise\ does not exist
 Mobirise creates both folders: \Mobirise\www_ghkurser_dk
+
+New sites that you create within mobirise by just giving the site a name, goes into here:
+"C:\Users\bruger\AppData\Local\Mobirise.com\Mobirise\projects" with a foldername like:
+"\project-2025-05-26_202311"
+
+If you have published to local folder on another pc, then copy the folder with the site. It HAS TO contain the project.mobirise file. If not, you have a problem. The .mobirise is essential for the import to work.
+The do a "Create new site or import" and point to the folder where you have the project.mobirise file.
+
+That should work
